@@ -4,29 +4,29 @@ import {useEffect, useState} from "react";
 import { supabaseClient } from '../../../utils/supabase/client';
 
 interface Product {
-    id: number;
-    handle: string;
-    title: string;
-    bodyHtml:string;
-    vendor:string;
-    productCategory:string;
-    tags:string[];
-    published:boolean;
-    sizeName:string;
-    sizeValue:string;
-    variantSKU:string;
-    variantPrice:number;
-    imageSrc:string;
-    imagePosition:number;
-    imageAltText:string;
-    productRating:string;
-
+    ID: string;              // Из данных видно, что это строка, а не число
+    Handle: string;
+    Title: string;
+    "Body (HTML)": string;   // Имя поля с пробелами нужно заключать в кавычки
+    Vendor: string;
+    "Product Category": string;
+    Tags: string | null;     // В данных это null
+    Published: string;       // В данных это строка "TRUE"
+    "Size Name": string;
+    "Size Value": string;
+    "Variant SKU": string | null;
+    "Variant Price": number;
+    "Image Src": string;
+    "Image Position": number;
+    "Image Alt Text": string;
+    "Product rating count (product.metafields.reviews.rating_count)": null;
 }
 
 export default function Products() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
+    console.log(products)
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -60,23 +60,28 @@ export default function Products() {
     if (loading) return <p>Загрузка...</p>;
     if (error) return <p>Ошибка: {error.message}</p>;
 
+
     return (
-        <div>
-            <h1>Мои товары</h1>
-            <ul>
-                {products.map((product) => (
-                    <li key={product.id}>
-                        {product.imageSrc && (
+        <div className="container mx-auto px-10">
+            <h1 className="text-2xl font-bold my-4">Мои товары</h1>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                {products.map((product, index) => (
+                    <div
+                        key={product.ID || `product-${index}`}
+                    >
+                        {product["Image Src"] && (
                             <img
-                                src={product.imageSrc}
-                                alt={product.imageAltText || product.title}
-                                style={{ width: '100px', height: 'auto', marginRight: '10px' }}
+                                src={product["Image Src"]}
+                                alt={product["Image Alt Text"] || product.Title}
+                                className="w-full h-48 object-scale-down rounded mb-3"
                             />
                         )}
-                        {product.title} - ${product.variantPrice} UAH.
-                    </li>
+                        <h3 className="text-lg font-semibold">{product.Title}</h3>
+                        <p className="font-bold text-lg text-blue-600">{product["Variant Price"]} UAH</p>
+                        {product.Vendor && <p className="text-sm text-gray-600">Производитель: {product.Vendor}</p>}
+                    </div>
                 ))}
-            </ul>
+            </div>
         </div>
     );
 }
