@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export default function Home() {
   return (
@@ -97,6 +98,8 @@ export default function Home() {
             />
             Go to nextjs.org →
           </a>
+          <SpeedInsights/>
+
         </footer>
       </div>
   );
