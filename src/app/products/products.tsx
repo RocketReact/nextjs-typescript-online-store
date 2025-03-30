@@ -32,7 +32,7 @@ export default function Products() {
         const fetchProducts = async () => {
             try {
                 const { data, error: supabaseError } = await supabaseClient
-                    .from('Table product')
+                    .from('Table Product')
                     .select('*');
 
                 if (supabaseError) {
