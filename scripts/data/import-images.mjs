@@ -25,23 +25,17 @@ async function processImages() {
         const csvPath = path.join(process.cwd(), 'data', 'products_with_supabase_images.csv');
         const csvData = await fs.readFile(csvPath, 'utf8');
 
-        console.log("Парсинг CSV файла...");
 
         // Парсинг CSV
         const { data: products } = Papa.parse(csvData, { header: true });
-
-        console.log(`Загружено ${products.length} товаров из CSV`);
 
         const updatedProducts = [];
 
         // Обработка изображений для каждого продукта
         for (const product of products) {
-            console.log(`Обработка товара: ${product.Title || product.Handle || 'Без названия'}`);
-
             if (product['Image Src']) {
                 try {
                     // Скачивание изображения
-                    console.log(`  - Скачивание изображения: ${product['Image Src']}`);
                     const response = await fetch(product['Image Src']);
                     if (!response.ok) {
                         throw new Error(`Не удалось скачать изображение: ${response.status}`);
@@ -71,12 +65,9 @@ async function processImages() {
 
                     // Обновление URL в объекте продукта
                     product['Image Src'] = publicUrlData.publicUrl;
-                    console.log(`  - Изображение загружено: ${publicUrlData.publicUrl}`);
                 } catch (error) {
                     console.error(`  - Ошибка обработки изображения для продукта ${product.Handle}:`, error);
                 }
-            } else {
-                console.log(`  - Нет изображения для этого товара`);
             }
 
             updatedProducts.push(product);
@@ -94,7 +85,6 @@ async function processImages() {
         const updatedCsv = Papa.unparse(updatedProducts);
         await fs.writeFile(outputPath, updatedCsv, 'utf8');
 
-        console.log(`\nОбработка завершена! Обновленный CSV сохранен в: ${outputPath}`);
     } catch (error) {
         console.error('Произошла ошибка:', error);
     }
