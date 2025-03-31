@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabaseClient } from '../../../utils/supabase/client';
+import Image from "next/image";
 
 interface Product {
     ID: string;
@@ -102,7 +103,7 @@ export default function Products() {
                 });
 
                 // Второй проход для дополнительной обработки
-                // Находим записи, где не удалось установить цену, и ищем цену среди всех товаров с тем же Handle
+                // Find price in Handle
                 (data || []).forEach((product: Product) => {
                     const handle = product.Handle;
                     const groupedProduct = productsMap.get(handle);
@@ -162,11 +163,16 @@ export default function Products() {
                     <div key={product.Handle} >
                         {product.images.length > 0 && (
                             <div className="relative">
-                                <img
-                                    src={product.images[activeImageIndex[product.Handle]].src}
-                                    alt={product.images[activeImageIndex[product.Handle]].alt}
-                                    className="w-full h-48 object-contain rounded mb-3"
-                                />
+                                <div className="relative h-48 w-full mb-3">
+                                    <Image
+                                        src={product.images[activeImageIndex[product.Handle]].src}
+                                        alt={product.images[activeImageIndex[product.Handle]].alt}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, 25vw"
+                                        className="object-contain rounded"
+                                        priority={activeImageIndex[product.Handle] === 0} // Приоритетная загрузка только для первого изображения
+                                    />
+                                </div>
 
                                 {/* Показываем точки для переключения изображений, если их больше одного */}
                                 {product.images.length > 1 && (
