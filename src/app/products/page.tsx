@@ -24,16 +24,15 @@ interface Product {
 
 // Интерфейс для сгруппированных продуктов
 interface GroupedProduct {
-    Title: string; // Может быть заполнено из любой записи с не NULL значением
-    Handle: string; // Ключ для группировки
+    Title: string;
+    Handle: string;
     Vendor: string;
-    "Variant Price": number;
+    "Variant Price": number | null; // Может быть null если цена не найдена
     images: {
         src: string;
         alt: string;
         position: number;
     }[];
-    // Добавляем другие необходимые поля
 }
 
 export default function Products() {
@@ -61,20 +60,34 @@ export default function Products() {
                     const handle = product.Handle;
 
                     if (!productsMap.has(handle)) {
-                        // Находим лучший Title для отображения (не NULL)
+                        // При создании новой записи используем Title только если он не NULL
                         const title = product.Title || handle;
 
                         // Создаем новую запись для этого handle
                         productsMap.set(handle, {
                             Title: title,
                             Handle: handle,
-                            Vendor: product.Vendor,
-                            "Variant Price": product["Variant Price"],
+                            Vendor: product.Vendor || "",
+                            "Variant Price": product["Variant Price"] || null,
                             images: []
                         });
-                    } else if (product.Title && !productsMap.get(handle)!.Title) {
-                        // Если у текущей записи есть Title, а у сохраненной нет - обновляем Title
-                        productsMap.get(handle)!.Title = product.Title;
+                    } else {
+                        const currentProduct = productsMap.get(handle)!;
+
+                        // Обновляем Title если текущий Title - это handle или NULL
+                        if (product.Title && (currentProduct.Title === handle || !currentProduct.Title)) {
+                            currentProduct.Title = product.Title;
+                        }
+
+                        // Обновляем цену если текущая цена - NULL, а у этой записи есть цена
+                        if (product["Variant Price"] && !currentProduct["Variant Price"]) {
+                            currentProduct["Variant Price"] = product["Variant Price"];
+                        }
+
+                        // Обновляем vendor если текущий vendor пустой
+                        if (product.Vendor && !currentProduct.Vendor) {
+                            currentProduct.Vendor = product.Vendor;
+                        }
                     }
 
                     // Добавляем изображение в массив изображений продукта
@@ -85,6 +98,17 @@ export default function Products() {
                             alt: product["Image Alt Text"] || product.Title || handle,
                             position: product["Image Position"]
                         });
+                    }
+                });
+
+                // Второй проход для дополнительной обработки
+                // Находим записи, где не удалось установить цену, и ищем цену среди всех товаров с тем же Handle
+                (data || []).forEach((product: Product) => {
+                    const handle = product.Handle;
+                    const groupedProduct = productsMap.get(handle);
+
+                    if (groupedProduct && !groupedProduct["Variant Price"] && product["Variant Price"]) {
+                        groupedProduct["Variant Price"] = product["Variant Price"];
                     }
                 });
 
@@ -119,7 +143,7 @@ export default function Products() {
 
     }, []);
 
-    // Функция для изменения активного изображения
+    // Fn change active img
     const changeActiveImage = (handle: string, index: number) => {
         setActiveImageIndex(prev => ({
             ...prev,
@@ -164,7 +188,11 @@ export default function Products() {
                             </div>
                         )}
                         <h3 className="text-lg font-semibold mt-2">{product.Title}</h3>
-                        <p className="font-bold text-lg text-blue-600">{product["Variant Price"]} UAH</p>
+                        {product["Variant Price"] ? (
+                            <p className="font-bold text-lg text-blue-600">{product["Variant Price"]} UAH</p>
+                        ) : (
+                            <p className="text-sm text-gray-400">Цена не указана</p>
+                        )}
                         {product.Vendor && <p className="text-sm text-gray-600">Производитель: {product.Vendor}</p>}
                     </div>
                 ))}
