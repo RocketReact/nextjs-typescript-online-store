@@ -1,7 +1,7 @@
 'use client';
 
 import Image from "next/image";
-import { useProductData, ProductsFilters } from "../components/ProductsFilters";
+import { useProductDataFilter, ProductsFilters } from "../components/ProductsFilters";
 
 export default function AllProducts() {
     const {
@@ -15,7 +15,7 @@ export default function AllProducts() {
         filterOptions,
         handleFilterChange,
         resetFilters
-    } = useProductData();
+    } = useProductDataFilter();
 
     if (loading) return (
         <div className="flex justify-center items-center min-h-[300px]">
