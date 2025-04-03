@@ -272,34 +272,26 @@ export const applyFilters = createAsyncThunk (
             );
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const filterSlice = createSlice({
     name: 'filters',
     initialState,
     reducers: {
+        //Update all filters
         setFilters: (state, action: PayloadAction<ProductsFiltersInterface>) => {
-            return {...state,  ...action.payload}
+             state.filters={...state.filters,  ...action.payload}
         },
-        resetFilters: () => initialState,
+        //Reset filters
+        resetFilters: (state) => {
+            state.filters = initialState.filters
+        },
+        changeActiveImage:(state, action:PayloadAction<{handle:string,index:number}>) => {
+            const {handle, index} = action.payload;
+            state.activeImageIndex[handle] = index;
+        }
     },
     extraReducers: (builder)=> {
         builder
+            //fetchProducts
             .addCase(fetchProducts.pending, (state) => {
                 state.loading = true
                 state.error = null
@@ -315,10 +307,20 @@ const filterSlice = createSlice({
                 state.error = action.payload as string;
                 state.products= []
             })
+        //processProducts
+            .addCase(processProducts.fulfilled, (state, action) => {
+                state.groupedProducts=action.payload.groupedProducts;
+                state.activeImageIndex = action.payload.activeImageIndex;
+                state.filterOptions = action.payload.filterOptions;
+            })
+        //applyFilters
+            .addCase (applyFilters.fulfilled, (state, action) => {
+                state.filteredProducts=action.payload;
+            });
 
     }
 
-})
+});
 
-const {setFilters, resetFilters} = filterSlice.actions;
+const {setFilters, resetFilters, changeActiveImage} = filterSlice.actions;
 export default filterSlice.reducer
