@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import {supabaseClient} from '../../../utils/supabase'
-import * as timers from "node:timers";
+import {supabaseClient} from '../../../utils/supabase/client'
 
 interface Product {
     ID: string;
@@ -162,7 +161,7 @@ export const processProducts = createAsyncThunk (
             }
             if (product['Image Src']) {
                 const groupedProduct = productsMap.get(handle)!
-                const imagesExists = groupedProduct.images.some(img =>img.src===process['Image Src'])
+                const imagesExists = groupedProduct.images.some(img =>img.src===product['Image Src'])
                 if (!imagesExists) {
                     groupedProduct.images.push({
                         src:product['Image Src'],
@@ -197,6 +196,97 @@ export const processProducts = createAsyncThunk (
         };
     }
 );
+
+export const applyFilters = createAsyncThunk (
+    "products/applyFilters",
+    async (_,{getState}) => {
+        const state = getState() as { filters: ProductsState };
+        const {groupedProducts, filters} = state.filters;
+
+        if (groupedProducts.length === 0) return [];
+        let filtered = [...groupedProducts];
+
+        if (filters.category) {
+            filtered = filtered.filter(product =>
+                product['Product Category'] === filters.category
+            );
+        }
+        if (filters.minPrice !== undefined) {
+            filtered = filtered.filter(product =>
+                product['Variant Price'] !== null && product['Variant Price'] >= filters.minPrice!
+            );
+        }
+        if (filters.maxPrice !== undefined) {
+            filtered = filtered.filter(product =>
+                product['Variant Price'] !== null && product['Variant Price'] <= filters.maxPrice!
+            );
+        }
+        //Search by name
+        if (filters.search) {
+            const searchLower = filters.search.toLowerCase();
+            filtered = filtered.filter(product =>
+                product.Title.toLowerCase().includes(searchLower) ||
+                product.Vendor.toLowerCase().includes(searchLower)
+            );
+        }
+        //Sorting
+        if (filters.sort) {
+            switch ((filters.sort)) {
+                case 'price_asc':
+                    filtered.sort((a, b) => {
+                        if (a['Variant Price'] === null) return 1;
+                        if (b['Variant Price'] === null) return -1;
+                        return a['Variant Price'] - b['Variant Price']
+                    });
+                    break;
+                case 'price_desc':
+                    filtered.sort((a, b) => {
+                        if (a['Variant Price'] === null) return 1;
+                        if (b['Variant Price'] === null) return -1;
+                        return b['Variant Price'] - a['Variant Price']
+                    });
+                    break;
+
+                case 'title_asc':
+                    filtered.sort((a, b) =>
+                        a.Title.localeCompare(b.Title));
+                    break;
+                case 'title_desc':
+                    filtered.sort((a, b) =>
+                        b.Title.localeCompare(a.Title));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        //Paginations
+        const startIndex = (filters.page && filters.limit)
+            ? (filters.page - 1) * filters.limit
+            : 0;
+        const endIndex = (filters.page && filters.limit)
+            ? startIndex + filters.limit
+            : filtered.length;
+        return filtered.slice(startIndex, endIndex);
+    }
+            );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 const filterSlice = createSlice({
