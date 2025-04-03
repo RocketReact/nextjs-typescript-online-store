@@ -120,7 +120,7 @@ export const processProducts = createAsyncThunk (
         const vendors = new Set <string> ();
         const sizes = new Set <string> ();
         let minPrice = Infinity;
-        let maxPrice = 0;
+        let maxPrice = -Infinity;
 
         products.forEach((product:Product)=> {
             const handle = product.Handle;
@@ -322,5 +322,5 @@ const filterSlice = createSlice({
 
 });
 
-const {setFilters, resetFilters, changeActiveImage} = filterSlice.actions;
+export const {setFilters, resetFilters, changeActiveImage} = filterSlice.actions;
 export default filterSlice.reducer
