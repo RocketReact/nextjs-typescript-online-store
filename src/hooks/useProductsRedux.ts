@@ -1,6 +1,6 @@
 import {useEffect} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import type {AppDispatch, RootState} from "../store/store";
+import type {AppDispatch, RootState} from "@/store/store";
 import {
     fetchProducts,
     processProducts,
@@ -17,6 +17,7 @@ export default function  useProductsRedux () {
         loading,
         error,
         groupedProducts,
+        filteredProducts,
         activeImageIndex,
         filters,
         filterOptions,
@@ -60,6 +61,7 @@ export default function  useProductsRedux () {
         loading,
         error,
         groupedProducts,
+        filteredProducts,
         activeImageIndex,
         filters,
         filterOptions,
