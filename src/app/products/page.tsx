@@ -1,9 +1,10 @@
 'use client';
-
+import React from 'react'
 import Image from "next/image";
-import { useProductDataFilter, ProductsFilters } from "../components/ProductsFilters";
+import ProductsFilters from "../components/ProductsFilters";
+import useProductsRedux from "@/hooks/useProductsRedux";
 
-export default function AllProducts() {
+const AllProducts: React.FC = () => {
     const {
         loading,
         error,
@@ -15,7 +16,7 @@ export default function AllProducts() {
         filterOptions,
         handleFilterChange,
         resetFilters
-    } = useProductDataFilter();
+    } = useProductsRedux();
 
     if (loading) return (
         <div className="flex justify-center items-center min-h-[300px]">
@@ -27,7 +28,7 @@ export default function AllProducts() {
         <div className="container mx-auto px-10 py-8">
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                 <p className="font-bold">Ошибка!</p>
-                <p>{error.message}</p>
+                <p>{error}</p>
             </div>
         </div>
     );
@@ -48,7 +49,7 @@ export default function AllProducts() {
 
             {filteredProducts.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {filteredProducts.map((product) => (
+                    {filteredProducts.map(product => (
                         <div key={product.Handle} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
                             {product.images.length > 0 ? (
                                 <div className="relative">
@@ -120,3 +121,4 @@ export default function AllProducts() {
         </div>
     );
 }
+export default AllProducts;
