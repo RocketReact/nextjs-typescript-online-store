@@ -98,15 +98,15 @@ export const fetchProducts = createAsyncThunk (
         try {
             const {data, error: supabaseError} = await supabaseClient.from('table_product').select('*')
 
-        if (supabaseError) {
-            return rejectWithValue(new Error(`Error to get data ${supabaseError.message}`))
+            if (supabaseError) {
+                return rejectWithValue(new Error(`Error to get data ${supabaseError.message}`))
+            }
+            return data
         }
-        return data
-    }
         catch (error) {
             return rejectWithValue(error instanceof Error ? error.message : 'An unknown error occurred')
         }
-      }
+    }
 )
 
 export const processProducts = createAsyncThunk (
@@ -143,21 +143,21 @@ export const processProducts = createAsyncThunk (
                     'Variant Price': product['Variant Price'] || null,
                     images: []
                 });
-        } else {
-            const currentProduct = productsMap.get(handle)!;
+            } else {
+                const currentProduct = productsMap.get(handle)!;
 
-            if (product.Title && (currentProduct.Title === handle || !currentProduct.Title)) {
-            currentProduct.Title = product.Title
-            }
-            if (product['Variant Price'] && !currentProduct['Variant Price']) {
-                currentProduct['Variant Price'] = product['Variant Price']
-            }
-            if (product.Vendor && !currentProduct.Vendor) {
-                currentProduct.Vendor = product.Vendor
-            }
-            if (product['Product Category'] && !currentProduct['Product Category']) {
-                currentProduct['Product Category'] = product['Product Category']
-            }
+                if (product.Title && (currentProduct.Title === handle || !currentProduct.Title)) {
+                    currentProduct.Title = product.Title
+                }
+                if (product['Variant Price'] && !currentProduct['Variant Price']) {
+                    currentProduct['Variant Price'] = product['Variant Price']
+                }
+                if (product.Vendor && !currentProduct.Vendor) {
+                    currentProduct.Vendor = product.Vendor
+                }
+                if (product['Product Category'] && !currentProduct['Product Category']) {
+                    currentProduct['Product Category'] = product['Product Category']
+                }
             }
             if (product['Image Src']) {
                 const groupedProduct = productsMap.get(handle)!
@@ -172,9 +172,23 @@ export const processProducts = createAsyncThunk (
             }
         });
 
-        const initialActiveImageIndexes: Record<string, number> ={};
-        Array.from(productsMap.keys()).forEach(handle => {
-            initialActiveImageIndexes[handle]=0
+        // Сортируем изображения по позиции для каждого продукта
+        productsMap.forEach(product => {
+            product.images.sort((a, b) => a.position - b.position);
+        });
+
+        // Создаем начальные индексы активных изображений с учетом позиции
+        const initialActiveImageIndexes: Record<string, number> = {};
+        productsMap.forEach((product, handle) => {
+            // Если есть изображения, найдем индекс первого изображения с position=1 (или минимальной позицией)
+            if (product.images.length > 0) {
+                // Ищем изображение с position=1
+                const indexOfPositionOne = product.images.findIndex(img => img.position === 1);
+                // Если нашли, используем его, иначе берем первое изображение (индекс 0)
+                initialActiveImageIndexes[handle] = indexOfPositionOne !== -1 ? indexOfPositionOne : 0;
+            } else {
+                initialActiveImageIndexes[handle] = 0;
+            }
         });
 
         const filterOptions = {
@@ -183,11 +197,11 @@ export const processProducts = createAsyncThunk (
             sizes: Array.from(sizes),
             priceRange: {
                 min:minPrice ===Infinity? 0 : minPrice,
-                max: maxPrice === 0? 1000 : maxPrice
+                max: maxPrice === -Infinity? 1000 : maxPrice
             }
         };
         const groupedProducts = Array.from(productsMap.values())
-    dispatch(applyFilters());
+        dispatch(applyFilters());
 
         return {
             groupedProducts,
@@ -211,6 +225,13 @@ export const applyFilters = createAsyncThunk (
                 product['Product Category'] === filters.category
             );
         }
+
+        if (filters.vendor) {
+            filtered = filtered.filter(product =>
+                product.Vendor === filters.vendor
+            );
+        }
+
         if (filters.minPrice !== undefined) {
             filtered = filtered.filter(product =>
                 product['Variant Price'] !== null && product['Variant Price'] >= filters.minPrice!
@@ -269,7 +290,7 @@ export const applyFilters = createAsyncThunk (
             : filtered.length;
         return filtered.slice(startIndex, endIndex);
     }
-            );
+);
 
 
 const filterSlice = createSlice({
@@ -278,7 +299,7 @@ const filterSlice = createSlice({
     reducers: {
         //Update all filters
         setFilters: (state, action: PayloadAction<ProductsFiltersInterface>) => {
-             state.filters={...state.filters,  ...action.payload}
+            state.filters={...state.filters,  ...action.payload}
         },
         //Reset filters
         resetFilters: (state) => {
@@ -307,13 +328,13 @@ const filterSlice = createSlice({
                 state.error = action.payload as string;
                 state.products= []
             })
-        //processProducts
+            //processProducts
             .addCase(processProducts.fulfilled, (state, action) => {
                 state.groupedProducts=action.payload.groupedProducts;
                 state.activeImageIndex = action.payload.activeImageIndex;
                 state.filterOptions = action.payload.filterOptions;
             })
-        //applyFilters
+            //applyFilters
             .addCase (applyFilters.fulfilled, (state, action) => {
                 state.filteredProducts=action.payload;
             });
