@@ -1,17 +1,28 @@
 'use client';
 import React from 'react'
+import {FilterOptionsType, ProductsFiltersInterface} from "@/store/slices/filterSlice";
 
-// Типы данных
+
+interface ProductsFiltersProps {
+    filters: ProductsFiltersInterface,
+    filterOptions: FilterOptionsType;
+    onFilterChangeAction:(newFilters: ProductsFiltersInterface) => void;
+    onResetAction:() => void;
+    totalProducts: number;
+    filteredCount: number;
+}
+
 
 // Компонент фильтров
-export function ProductsFilters({
-                                    filters,
-                                    filterOptions,
-                                    onFilterChangeAction,
-                                    onResetAction,
-                                    totalProducts,
-                                    filteredCount
-                                }: ProductsFiltersProps) {
+export default function ProductsFilters ({
+                                             filters,
+                                             filterOptions,
+                                             onFilterChangeAction,
+                                             onResetAction,
+                                             totalProducts,
+                                             filteredCount,
+
+                                         }: ProductsFiltersProps) {
 
     // Обработчики изменения фильтров
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -178,4 +189,3 @@ export function ProductsFilters({
     );
 }
 
-// Функция для получения данных и применения фильтров
